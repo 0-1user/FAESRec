@@ -38,9 +38,8 @@ Dataset statistics are summarised in **Table&nbsp;1**.
 
 <p align="center"><b>Table&nbsp;1</b> Statistics of datasets.</p>
 
-<div align=center>
-<img src="./figure/datasetinfo.png" />
-</div>
+![Figure datainfo](./figure/datasetinfo.png)
+
 
 ### 2.2 Baseline Models 
 We compare FAESRec with ten state-of-the-art models, including transformer-based models: **SASRec (ICDM, 2018)**, **BERT4Rec (CIKM, 2019)**, **LinRec (SIGIR, 2023)**; SSM-based models: **Mamba4Rec (RelKD, 2024)**, denoted as Mamba, **ECHOMamba4Rec**, denoted as
@@ -58,7 +57,7 @@ pip install -r requirements.txt
 
 ### 3.2 Training & Evaluation  
 
-Example scripts (full list in `./experiments/`):
+Example scripts (`./experiments/`):
 
 ```bash
 bash ./experiments/Amazon_Baby.bash
