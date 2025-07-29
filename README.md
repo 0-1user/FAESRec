@@ -36,7 +36,7 @@ $ tree
 
 Dataset statistics are summarised in **Table&nbsp;1**.
 
-<p align="center"><b>Table&nbsp;1</b> Statistics of datasets.</p>
+<p align="left"><b>Table&nbsp;1</b> Statistics of datasets.</p>
 
 ![Figure datainfo](./figure/datasetinfo.png)
 
