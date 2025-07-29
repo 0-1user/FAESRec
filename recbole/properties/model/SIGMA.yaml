@@ -1,0 +1,9 @@
+# mamba4rec settings
+hidden_size: 64                 # (int) Number of features in the hidden state. 
+num_layers: 1                   # (int) Number of GMamba layers.
+#n_blocks: 1                      # (int) Number of Mamba block.
+dropout_prob: 0.2               # (float) Dropout rate.
+loss_type: 'CE'                 # (str) Type of loss function. Range in ['BPR', 'CE'].
+d_state: 32                     # (int) SSM state expansion factor
+d_conv: 4                       # (int) Local convolution width
+expand: 2                       # (int) Block expansion factor

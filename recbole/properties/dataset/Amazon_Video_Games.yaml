@@ -1,0 +1,23 @@
+# MovieLens, Amazon
+field_separator: "\t" #指定数据集field的分隔符
+seq_separator: " " #指定数据集中token_seq或者float_seq域里的分隔符
+USER_ID_FIELD: user_id #指定用户id域
+ITEM_ID_FIELD: item_id #指定物品id域,m xm
+RATING_FIELD: rating #指定打分rating域
+TIME_FIELD: timestamp #指定时间域
+
+#指定从什么文件里读什么列，这里就是从ml-1m.inter里面读取user_id, item_id, rating, timestamp这四列,剩下的以此类推
+load_col:
+    inter: [user_id, item_id, rating, timestamp]
+
+NEG_PREFIX: neg_ #指定负采样前缀
+LABEL_FIELD: label #指定标签域
+ITEM_LIST_LENGTH_FIELD: item_length #指定序列长度域
+LIST_SUFFIX: _list #指定序列前缀
+MAX_ITEM_LIST_LENGTH: 50 #指定最大序列长度
+POSITION_FIELD: position_id #指定生成的序列位置id
+
+# min_user_inter_num: 5 #指定用户交互数的区间
+# min_item_inter_num: 5 #指定物品交互数的区间
+user_inter_num_interval: "[5,inf)"  #指定用户交互数的区间
+item_inter_num_interval: "[5,inf)"  #指定物品交互数的区间
