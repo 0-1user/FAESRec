@@ -18,7 +18,7 @@ class FAESRec(SequentialRecommender):
         # load parameters info
         self.dataset = dataset
         self.config = config
-        self.hidden_size = config["hidden_size"]  # same as embedding_size
+        self.hidden_size = config["hidden_size"]  
         self.layer_norm_eps = config["layer_norm_eps"]
         self.hidden_dropout_prob = config["hidden_dropout_prob"]
         self.hidden_act = config["hidden_act"]
@@ -88,28 +88,28 @@ class FAESRec(SequentialRecommender):
             mask[batch_size + i, i] = 0
         return mask
 
-    def forward(self, item_seq, input_tensor, item_seq_len):   # B,L,d
-        seq_output = self.encoder(item_seq, input_tensor)  # B,L,D
-        seq_output = self.gather_indexes(seq_output, item_seq_len - 1)  # B,D
-        return seq_output   # B,L,D
+    def forward(self, item_seq, input_tensor, item_seq_len):   
+        seq_output = self.encoder(item_seq, input_tensor)  
+        seq_output = self.gather_indexes(seq_output, item_seq_len - 1) 
+        return seq_output  
 
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
-        input_tensor = self.add_position_embedding(item_seq)  # B,L,D
+        input_tensor = self.add_position_embedding(item_seq) 
 
-        aug_seq_emb = self.aug_f(input_tensor)  # B,L,D 频域增强
+        aug_seq_emb = self.aug_f(input_tensor)  
 
-        seq_output = self.forward(item_seq, input_tensor, item_seq_len) #B,L,D; B,L,D
-        aug_seq_output = self.forward(item_seq, aug_seq_emb, item_seq_len)  # B,L,D
+        seq_output = self.forward(item_seq, input_tensor, item_seq_len)
+        aug_seq_output = self.forward(item_seq, aug_seq_emb, item_seq_len) 
 
         pos_items = interaction[self.POS_ITEM_ID]
-        # 对比损失
-        log, lab = self.info_nce(seq_output, aug_seq_output, self.sim)  # B,D
+        
+        log, lab = self.info_nce(seq_output, aug_seq_output, self.sim)  
         cl_los = self.aug_nce_fct(log, lab)
         
-        l1_weight_loss = torch.norm(self.aug_f.para[:, 0], p=1)  # L1正则化
-        cl_loss = self.cl_weight * cl_los + l1_weight_loss * self.l1_weight / self.max_seq_length  # L1正则化系数
+        l1_weight_loss = torch.norm(self.aug_f.para[:, 0], p=1)  
+        cl_loss = self.cl_weight * cl_los + l1_weight_loss * self.l1_weight / self.max_seq_length  
 
         
         if self.loss_type == "BPR":
@@ -213,60 +213,60 @@ class FAMoELayer(nn.Module):
         self.norm = nn.LayerNorm(hidden_size, eps=1e-12)
         self.dropout = nn.Dropout(config["hidden_dropout_prob"])
 
-    # x:B,C,L
+   
     def forward(self, x):  
-        #对输入进行傅里叶变换 
-        freq_x = torch.fft.rfft(x, dim=-1)  # freq_x: B,C,L_f
+        
+        freq_x = torch.fft.rfft(x, dim=-1)  
 
-        total_freq_size = freq_x.size(-1)   # L_f
-        boundaries = torch.sigmoid(self.band_boundaries)# 初始化标量，专家数-1;3; 生成每一个专家处理的频带
-        boundaries, _ = torch.sort(boundaries)  #排序生成K段，升序
+        total_freq_size = freq_x.size(-1)   
+        boundaries = torch.sigmoid(self.band_boundaries)
+        boundaries, _ = torch.sort(boundaries) 
 
         boundaries = torch.cat([
             torch.tensor([0.0], device=boundaries.device),
             boundaries,
             torch.tensor([1.0], device=boundaries.device)
-        ])#生成[0-b1, b1-b2, ...,bk-1-bk, bk-1.0]，tensor([0.0000, 0.5794, 0.6656, 0.7225, 1.0000],
+        ])
 
         indices = (boundaries * total_freq_size).long() #[ 0, 15, 17, 18, 26]
 
         indices[-1] = total_freq_size
-        #频率被分为K段
+        
         components = []
         for i in range(self.expert_num):
-            start_idx = indices[i].item()   #0,
-            end_idx = indices[i + 1].item() #15
+            start_idx = indices[i].item()   
+            end_idx = indices[i + 1].item() 
 
-            freq_mask = torch.zeros_like(freq_x)    #B,C,L_f
+            freq_mask = torch.zeros_like(freq_x)    
             if end_idx > start_idx:
                 freq_mask[:, :, start_idx:end_idx] = 1
 
-            expert_component = freq_x * freq_mask   # B,C,L_f 获得第i个专家处理的频率分量
+            expert_component = freq_x * freq_mask   
 
-            components.append(expert_component.unsqueeze(-1))   ## B,C,L_f,1
+            components.append(expert_component.unsqueeze(-1))  
 
-        freq_magnitude = torch.abs(freq_x)  #频率幅度信息
+        freq_magnitude = torch.abs(freq_x)  
 
-        gating_input = freq_magnitude.mean(dim=1)   # B,L_f 在通道维度取平均值，作为门控网络的输入
+        gating_input = freq_magnitude.mean(dim=1)   
 
-        gating_scores = nn.Softmax(dim=-1)(self.gating_network(gating_input))   # B,L_f -> B,K 获得门控分数
+        gating_scores = nn.Softmax(dim=-1)(self.gating_network(gating_input))   
         
         components = torch.cat(components, dim=-1)
 
-        gating_scores = gating_scores.unsqueeze(1).unsqueeze(2) #B,K -> B,1,K -> B,1,1,K
+        gating_scores = gating_scores.unsqueeze(1).unsqueeze(2) 
 
-        combined_freq_output = torch.sum(components * gating_scores, dim=-1)    #B,C,L_f,k -> B,C,L_f
+        combined_freq_output = torch.sum(components * gating_scores, dim=-1)    
         
         combined_output = torch.fft.irfft(combined_freq_output, n=self.seq_len)
-        #将频域输出转换回时域
-        combined_output = combined_output.permute(0, 2, 1)  # B,D,L-> B,L,D; B,D,L_f -> B,L_f,D
+       
+        combined_output = combined_output.permute(0, 2, 1)  
         return combined_output
     
-#频率处理
+
 class FreqAug(Module):
     def __init__(self, max_seq_length, config):
         super(FreqAug, self).__init__()
-        #自适应全局语义视图
+       
         self.weight = nn.Parameter(torch.empty((max_seq_length//2 + 1, 2)))
         self.reset_parameters()
 
@@ -362,11 +362,11 @@ class FAEBlock(nn.Module):
         self.dropout = nn.Dropout(config["hidden_dropout_prob"])
     
     def forward(self, hidden_states):
-        hidden_states = self.moe(hidden_states.permute(0, 2, 1))    # (B,L,d -> B,d,L)-> B,L,d; B,L_f,D
+        hidden_states = self.moe(hidden_states.permute(0, 2, 1))    
         hidden_states = self.freadaptorlayer(hidden_states)
         
         hidden_states = self.enc(hidden_states)
-        sequence_output = self.intermediate(hidden_states)  # B,L,D
+        sequence_output = self.intermediate(hidden_states)  
         return sequence_output
 
 class LearnableFilterLayer(nn.Module):
@@ -397,8 +397,8 @@ class FreAdaptorLayer(nn.Module):
         self.learnable_filter_layer_3 = LearnableFilterLayer(dim)
 
         self.threshold_param = nn.Parameter(torch.rand(1) * 0.5)
-        self.low_pass_cut_freq_param = nn.Parameter(dim // 2 - torch.rand(1) * 0.5)#用于确定低通滤波的截至频率，维度大小的一半减去一个小的随机值
-        self.high_pass_cut_freq_param = nn.Parameter(dim // 4 - torch.rand(1) * 0.5)#高通滤波的截至频率，维度大小的四分之一减去一个小的随机值
+        self.low_pass_cut_freq_param = nn.Parameter(dim // 2 - torch.rand(1) * 0.5)
+        self.high_pass_cut_freq_param = nn.Parameter(dim // 4 - torch.rand(1) * 0.5)
         self.l1 = nn.Linear(dim, dim)
         self.l2 = nn.Linear(dim, dim)
         self.ac = nn.SiLU()
@@ -406,34 +406,34 @@ class FreAdaptorLayer(nn.Module):
         self.norm = nn.LayerNorm(dim, eps=1e-12)
         self.dropout = nn.Dropout(config["hidden_dropout_prob"])
     
-    def adaptive_freq_pass(self, x_fft, flag="high"): #对频率进行mask，flag指定是应用高通还是低通
-        B, H, W_half = x_fft.shape  # W_half is the reduced dimension for real FFT
-        W = (W_half - 1) * 2  # Calculate the full width assuming the input was real
+    def adaptive_freq_pass(self, x_fft, flag="high"): 
+        B, H, W_half = x_fft.shape  
+        W = (W_half - 1) * 2 
         
-        # Generate the non-negative frequency values along one dimension
+       
         freq = torch.fft.rfftfreq(W, d=1/W).to(x_fft.device)
         
-        if flag == "high": #根据flag创建mask
-            freq_mask = torch.abs(freq) >= self.high_pass_cut_freq_param.to(x_fft.device)#允许高于 high_pass_cut_freq_param 的频率
+        if flag == "high": 
+            freq_mask = torch.abs(freq) >= self.high_pass_cut_freq_param.to(x_fft.device)
         else:
-            freq_mask = torch.abs(freq) <= self.low_pass_cut_freq_param.to(x_fft.device)#允许低于 low_pass_cut_freq_param 的频率
-        return x_fft * freq_mask#将此mask应用于x_fft, 以选择性地保留某些频率
+            freq_mask = torch.abs(freq) <= self.low_pass_cut_freq_param.to(x_fft.device)
+        return x_fft * freq_mask
 
-    def forward(self, x_in):    #B,L_f,D
+    def forward(self, x_in):    
         B, N, C = x_in.shape
 
         x = x_in.to(torch.float32)
-        # # Apply FFT along the time dimension
-        x_fft = torch.fft.rfft(x, dim=1, norm='ortho')    #B,L_f,D
+        
+        x_fft = torch.fft.rfft(x, dim=1, norm='ortho')   
 
         if self.adaptive_filter:
-            # freq_mask = self.create_adaptive_high_freq_mask(x_fft)
-            x_low_pass = self.adaptive_freq_pass(x_fft, flag="low")#低通
             
-            x_high_pass = self.adaptive_freq_pass(x_fft, flag="high")#高通
+            x_low_pass = self.adaptive_freq_pass(x_fft, flag="low")
+            
+            x_high_pass = self.adaptive_freq_pass(x_fft, flag="high")
 
         x_weighted = self.learnable_filter_layer_1(x_fft) + self.learnable_filter_layer_3(x_high_pass) + self.learnable_filter_layer_2(x_low_pass) 
-        x = torch.fft.irfft(x_weighted, n=N, dim=1, norm='ortho')  # B,L,D
+        x = torch.fft.irfft(x_weighted, n=N, dim=1, norm='ortho')  
         
         return x
        
@@ -453,7 +453,7 @@ class MambaLayer(nn.Module):
         self.LayerNorm = nn.LayerNorm(config["hidden_size"], eps=1e-12)
 
     def forward(self, input_tensor):
-        #正向mamba
+       
         hidden_states = self.mamba(input_tensor)
         if self.num_layers == 1:        # one Mamba layer without residual connection
             hidden_states = self.LayerNorm(self.dropout(hidden_states))
