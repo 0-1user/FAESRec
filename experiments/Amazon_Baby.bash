@@ -1,8 +1,8 @@
 ## baseline "SIGMA" "EchoMamba4Rec" "Mamba4Rec" "LinRec" "CFIT4SRec" "FEARec" "FMLPRec" "SASRec" "GRU4Rec" "BERT4Rec"
-##datasets:Amazon_Beauty Amazon_Sports Amazon_Toys Amazon_Clothing ml-1m Amazon_Video_Games
+##datasets: Amazon_Sports Amazon_Baby Amazon_Video_Games Amazon_Office_Products
 gpu_id=0    #gpu id 更改
 dataset="Amazon_Baby"
-models=("FAESRec" "SIGMA" "EchoMamba4Rec" "Mamba4Rec" "LinRec" "CFIT4SRec" "FEARec" "FMLPRec" "SASRec" "GRU4Rec" "BERT4Rec")
+models=("FAESRec") # model
 
 for model in ${models[@]}
 do
