@@ -45,6 +45,10 @@ Dataset statistics are summarised in **Table&nbsp;1**.
 We compare FAESRec with ten state-of-the-art models, including transformer-based models: **SASRec (ICDM, 2018)**, **BERT4Rec (CIKM, 2019)**, **LinRec (SIGIR, 2023)**; SSM-based models: **Mamba4Rec (RelKD, 2024)**, denoted as Mamba, **ECHOMamba4Rec**, denoted as
 ECHO, **SIGMA (AAAI, 2025)**;  frequency-based models: **FMLPRec (WWW, 2022)**, **FEARec (SIGIR, 2023)**; contrastive learning based models: **DuoRec (WSDM, 2022)**,  **CFIT4Rec (RecSys, 2023)**, denoted as CFIT.
 
+### 2.3 Results
+In the PAPER, we report the results of HR@{1, 5, 10}, NDCG@{5, 10}. The results are shown in the following picture.
+![Figure result](./figure/result.png)
+
 ---
 
 ## 3. Result Reproduction
