@@ -5,7 +5,7 @@
 
 ![Figure 1](./figure/model1.png)
 
-<p align="left"><b>Figure&nbsp;1</b> The architecture of the FAESRec.</p>
+<p align="center"><b>Figure&nbsp;1</b> The architecture of the FAESRec.</p>
 
 The architecture of FAESRec, as illustrated in Figure 1, primarily encompasses three key components: (1) end-to-end spectral decomposition with learned boundaries, (2) denoising and re-weighting of spectral components, and (3) frequency-adaptive contrastive learning.
 
