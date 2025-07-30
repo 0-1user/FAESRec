@@ -1,6 +1,6 @@
 # FAESRec
 
-**Frequency-Adaptive Encoder for Sequential Recommendation (FAESRec)​** is a novel framework that addresses limitations in sequence encoder by introducing three core innovations: a Frequency-Adaptive Mixture-of-Experts layer (FAMoE) for end-to-end spectral decomposition with learned boundaries, adaptive global/local filters (FAFe) for denoising and re-weighting spectral components, and a probabilistic contrastive learner (FSaCL) that synthesizes semantically coherent frequency-domain views while theoretically preserving mutual information, achieving up to 103.57% HR@1 and 19.68% NDCG@5 improvements over state-of-the-art baselines across four benchmarks.
+**Frequency-Adaptive Encoder for Sequential Recommendation (FAESRec)​** is a novel framework that addresses limitations in sequence encoder by introducing three core innovations: a Frequency-Adaptive Mixture-of-Experts layer (FAMoE) for end-to-end spectral decomposition with learned boundaries, adaptive global/local filters (FAFe) for denoising and re-weighting spectral components, and a probabilistic contrastive learner (FSaCL) that synthesizes semantically coherent frequency-domain views while theoretically preserving mutual information, improving HR@1 by **32.97~103.57\%** and NDCG@5 by **7.48~19.68\%** over state-of-the-art baselines across four benchmarks.
 
 
 ![Figure 1](./figure/model.png)
